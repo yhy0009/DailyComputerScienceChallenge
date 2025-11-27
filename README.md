@@ -270,3 +270,140 @@ GC는 현재 프로그램에서 참조할 수 있는 객체인지를 기준으�
 
 GC = 계속 쓰이는 메모리는 유지하고,
 더 이상 쓰지 않는 메모리는 자동으로 청소해서 프로그램의 안정성을 지켜주는 조력자
+
+## 25. 11. 21(금)
+### 오늘의 질문: API Gateway란 무엇이고, 왜 사용하나요?
+
+### API Gateway란?
+여러 개의 백엔드 서비스(MSA)를 하나의 통합된 API 엔드포인트로 묶어, 클라이언트가 단일 창구로 요청을 보내도록 하는 시스템
+
+즉, 클라이언트는
+
+User 서비스, Order 서비스, Payment 서비스, Product 서비스
+이렇게 나눠져 있는지 알 필요가 없음
+
+/api/... 하나로 요청하면 API Gateway가 알아서 적절한 백엔드로 라우팅 진행
+
+### 왜 API Gateway가 필요한가
+MSA 환경에서는 API Gateway 없이는 문제가 매우 많이 발생하기 때문
+
+API Gateway가 없으면
+
+문제 ① 클라이언트가 모든 서비스를 직접 호출해야 함
+
+예:
+프론트엔드가 User 서비스, Post 서비스, Auth 서비스… 등
+10개, 20개의 엔드포인트를 알아야 함.
+
+→ 유지보수 지옥 
+
+→ 모바일에서는 특히 네트워크 연결 과부하
+
+문제 ② 각 서비스마다 인증/인가를 직접 구현해야 함
+
+→ 로직 중복
+
+→ 보안정책 통일 불가능
+
+→ 버그 발생률 ↑
+
+문제 ③ 서비스 URL 변경 시 클라이언트도 수정 필요
+
+운영 중 서비스가 옮겨지면 → 앱/웹 클라이언트 모두 업데이트해야 함
+
+문제 ④ 모니터링/로깅/트래픽 제어가 서비스별로 분산
+
+→ 장애 원인을 찾기 어려움
+
+→ 일관된 정책 적용 불가능
+
+### 3. API Gateway가 제공하는 기능
+✔ 1) 라우팅(Routing)
+
+클라이언트 요청 → 해당 백엔드 서비스로 전달
+
+예:
+
+/users/** → User Service
+
+/orders/** → Order Service
+
+✔ 2) 인증·인가 처리(Authentication & Authorization)
+
+JWT 검증, OAuth2, API Key 처리 등
+
+→ 서비스 내부에서는 인증 부담 사라짐
+
+✔ 3) Rate Limiting (요청 제한)
+
+봇 공격, 트래픽 폭주 방지
+
+예: IP당 1초에 10개의 요청만 허용
+
+✔ 4) 로깅 & 모니터링
+
+스펙 분산 없이 한 곳에서 관제
+
+CloudWatch, ELK, Prometheus 등과 연계
+
+✔ 5) 캐싱
+
+자주 쓰는 응답을 Gateway에서 캐싱 → 백엔드 부하 대폭 감소
+
+✔ 6) 트래픽 관리(로드 밸런싱)
+
+Gateway → 여러 백엔드 서버로 분산
+
+### 4. API Gateway를 사용했을 때 통신 흐름
+```
+[Client] → [API Gateway] → [Auth Service]
+                         → [User Service]
+                         → [Order Service]
+                         → [Product Service]
+```
+
+
+클라이언트는 단 하나의 URL만 알면 됨.
+
+### 5. API Gateway의 대표적인 종류
+
+**AWS API Gateway**
+
+Serverless API 관리에 최적
+
+Lambda, DynamoDB와 자주 함께 사용
+
+**Kong**
+
+오픈소스 기반 API Gateway 1위
+
+**NGINX Gateway**
+
+고성능 트래픽 처리에 강함
+
+**Spring Cloud Gateway**
+
+Spring 기반 MSA에서 사용하기 매우 편리
+
+**Istio의 Ingress Gateway**
+
+서비스 메시(Service Mesh)의 Gateway 역할
+
+### 6. 언제 API Gateway가 especially 중요할까?
+
+MSA 구조일 때
+
+모바일/웹 클라이언트가 여러 서비스에 접근할 때
+
+인증/보안 정책을 중앙화해야 할 때
+
+API 버저닝이 필요한 경우
+
+모니터링을 통합하고 싶을 때
+
+즉, **서비스 규모가 커지면 API Gateway는 거의 필수요소**
+
+### 한 문장 요약
+
+API Gateway는 모든 백엔드 서비스를 하나의 관문으로 묶어,
+인증·라우팅·보안·로깅·트래픽 제어를 중앙화하는 필수 인프라 요소이다.
